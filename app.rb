@@ -16,7 +16,7 @@ incoming_sms = params["Body"].downcase
 #If they text help return a help message
 if incoming_sms.include?("help")
 	# query Splitcast API and store JSON of spots
-	response = Twilio::TwiML::Response.new  { |r| r.Sms "Type in venue name to get an ID, once you get an ID type in ID and the word tonight to get what's playing!" }
+	response = Twilio::TwiML::Response.new  { |r| r.Sms "Type in venue name and city to get a venue ID \" The Warfield SF\" would be a good search. Once you have an ID enter it to get the next 5 shows at that venue!" }
 # if they send in just numbers search for a venue calendar
 elsif incoming_sms.match('^[0-9]+$')
 	response_string = ""
