@@ -8,7 +8,7 @@ RestClient.enable Rack::Cache,
   :entitystore => Dalli::Client.new
 
 # this route handles all POST requests from Twilio
-post "/" do
+ post "/" do
 
 # take the body of the SMS and remove any spaces and make all lower case
 incoming_sms = params["Body"].downcase
@@ -25,8 +25,17 @@ elsif incoming_sms.match('^[0-9]+$')
 	data = RestClient.get("http://api.songkick.com/api/3.0/venues/#{incoming_sms}/calendar.json?apikey=PxY0ITiYDczYNR9t", :accept => :json)
 	data = JSON.parse(data)
 	data = data["resultsPage"]["results"]["event"]
-	data.each { |i| response_string << "#{i["displayName"]}: #{i["start"]["time"]}\n" }
 
+	z = 0
+	data.each do |i| 
+	
+	if z < 5	
+	response_string << "#{i["displayName"]}: #{i["start"]["time"]}\n" 
+	end
+
+	z += 1
+
+	end
 	# build Twilio response
 	response = Twilio::TwiML::Response.new  { |r| r.Sms "#{response_string}" }
 #otherwise interperate this search for a venue ID
