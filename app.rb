@@ -12,8 +12,13 @@ def get_or_post(path, opts={}, &block)
   post(path, opts, &block)
 end
 
+get "/*" do
+	# render web.md into the index tempate using erb
+	markdown :web, :layout_engine => :erb, :layout => :index
+end
+
 # this route handles all POST requests from Twilio
- get_or_post "/" do
+post "/*" do
 
 # take the body of the SMS and remove any spaces and make all lower case
 incoming_sms = params["Body"].downcase
@@ -24,25 +29,31 @@ if incoming_sms.include?("help")
 	response = Twilio::TwiML::Response.new  { |r| r.Sms "Search for a venue name and city to get a venue ID ie: \"The Warfield SF\". Once you have an ID, enter it to get the next 7 days of shows at that venue!" }
 # if they send in just numbers search for a venue calendar
 elsif incoming_sms.match('^[0-9]+$')
+	
 	response_string = ""
 
-	# query songkick API and store JSON of events for the given venue ID
 	data = RestClient.get("http://api.songkick.com/api/3.0/venues/#{incoming_sms}/calendar.json?apikey=PxY0ITiYDczYNR9t", :accept => :json)
 	data = JSON.parse(data)
-	data = data["resultsPage"]["results"]["event"]
 	
-	data.each do |i|
-	  unless i["start"]["datetime"].nil?
-	    puts i["start"]["datetime"]
-	    event_date = DateTime.parse(i["start"]["datetime"]).to_date
-	    date_difference = event_date - DateTime.now.to_date
-	    if date_difference > 0 && date_difference <= 7 
-	      response_string << "#{i["displayName"]}\n"
+	if data["resultsPage"]["results"].empty?
+	  response = Twilio::TwiML::Response.new  { |r| r.Sms "Sorry, no results for this venue ID" }
+	else
+	  data = data["resultsPage"]["results"]["event"]
+	
+	  data.each do |i|
+	    unless i["start"]["datetime"].nil?
+	      event_date = DateTime.parse(i["start"]["datetime"]).to_date
+	      date_difference = event_date - DateTime.now.to_date
+	       if date_difference > 0 && date_difference <= 7 
+	        response_string << "#{i["displayName"]}\n"
+	      end
 	    end
 	  end
-	end
 	# build Twilio response
-	response = Twilio::TwiML::Response.new  { |r| r.Sms "Show Details: \n#{response_string}" }
+	  response = Twilio::TwiML::Response.new  { |r| r.Sms "Show Details: \n#{response_string}" }
+	end
+
+
 #otherwise interperate this search for a venue ID
 else
 	response_string = ""
@@ -54,7 +65,7 @@ else
 
 	data.each { |i| response_string << "#{i["displayName"]}: #{i["id"]}\n" }
 
-	response = Twilio::TwiML::Response.new  { |r| r.Sms "Venue and Venue ID:\n#{response_string}" }
+	response = Twilio::TwiML::Response.new  { |r| r.Sms "Venue and ID:\n#{response_string}" }
 end
 # return valid TwiML back to Twilio
 response.text
