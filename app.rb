@@ -7,6 +7,13 @@ RestClient.enable Rack::Cache,
   :metastore   => Dalli::Client.new,
   :entitystore => Dalli::Client.new
 
+
+get "/" do
+
+puts "Hi Mom"
+
+end
+
 # this route handles all POST requests from Twilio
  post "/" do
 
@@ -32,9 +39,8 @@ elsif incoming_sms.match('^[0-9]+$')
 	
 	while z < 5	
 	  response_string << "#{i["displayName"]}\n" 
-	  z += 1
 	end
-	
+	z += 1
 	end
 	# build Twilio response
 	response = Twilio::TwiML::Response.new  { |r| r.Sms "Show Name and Time: \n#{response_string}" }
