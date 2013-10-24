@@ -7,9 +7,13 @@ RestClient.enable Rack::Cache,
   :metastore   => Dalli::Client.new,
   :entitystore => Dalli::Client.new
 
+def get_or_post(path, opts={}, &block)
+  get(path, opts, &block)
+  post(path, opts, &block)
+end
 
 # this route handles all POST requests from Twilio
- get "/" do
+ get_or_post "/" do
 
 # take the body of the SMS and remove any spaces and make all lower case
 incoming_sms = params["Body"].downcase

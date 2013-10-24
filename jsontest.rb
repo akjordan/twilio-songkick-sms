@@ -23,3 +23,6 @@ data = data["resultsPage"]["results"]["even"]
 
 >> data["resultsPage"]["results"]["event"][0]["displayName"] #=> "The Naked and Famous with NO at Fox Theater (October 25, 2013)"
 >> data["resultsPage"]["results"]["event"][0]["start"]["time"] #=> "20:00:00"
+
+
+DateTime.parse(data[0]["start"]["datetime"]).to_date
